@@ -13,7 +13,7 @@ embedder = SentenceTransformer('distiluse-base-multilingual-cased-v2')
 corpus = []
 
 # Read the CSV file and extract the corpus
-with open('corpus.csv', 'r', encoding='utf-8') as f:
+with open('aaa.csv', 'r', encoding='utf-8') as f:
     reader = csv.reader(f)
     for row in reader:
         if len(row) > 0:
@@ -39,7 +39,7 @@ if user_input:
     # Find the closest sentences in the corpus based on cosine similarity
     query_embedding = embedder.encode(user_input, convert_to_tensor=True)
     cos_scores = util.cos_sim(query_embedding, corpus_embeddings)[0]
-    top_results = torch.topk(cos_scores, k=3)
+    top_results = torch.topk(cos_scores, k=5)
     # Convert top_results to a string
     top_results_str = " ".join(
         [str(corpus[idx]+",") for score, idx in zip(top_results[0], top_results[1])])
@@ -82,7 +82,7 @@ if user_input:
 
 
     # Display the results
-    st.subheader("三名與您問題最相近的人:")
+    st.subheader("五名與您問題最相近的人:")
     for score, idx in zip(top_results[0], top_results[1]):
         st.write(corpus[idx], "(Score: {:.4f})".format(score))
 
