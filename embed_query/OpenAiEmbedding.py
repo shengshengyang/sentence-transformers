@@ -1,4 +1,4 @@
-import json
+import pandas as pd
 from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
@@ -6,18 +6,19 @@ import numpy as np
 
 def clean_and_reinput(data_path, model_path, index_path, vectors_path):
     try:
-        # Read data from phone.json
-        with open(data_path, 'r', encoding='utf-8') as file:
-            data = json.load(file)
+        # Read data from Excel file
+        data = pd.read_excel(data_path)
 
         # Initialize SentenceTransformer model
         model = SentenceTransformer(model_path)
 
         # Vectorize the titles
         title_vectors = []
-        for item in data:
-            title_vector = model.encode(item['title'])
+        for _, row in data.iterrows():
+            title_vector = model.encode(row['title'])
             title_vectors.append(title_vector)
+            print("Title:", row['title'])
+            print("Vector:", title_vector)
 
         # Convert title_vectors to a NumPy array
         title_vectors = np.array(title_vectors)
@@ -38,8 +39,8 @@ def clean_and_reinput(data_path, model_path, index_path, vectors_path):
 
 
 # Example usage
-data_path = 'phone.json'
-model_path = 'distiluse-base-multilingual-cased-v2'
+data_path = 'phone2.xlsx'
+model_path = 'paraphrase-multilingual-mpnet-base-v2'
 index_path = 'index.faiss'
 vectors_path = 'title_vectors.npy'
 
