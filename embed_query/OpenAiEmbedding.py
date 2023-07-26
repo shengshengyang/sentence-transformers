@@ -1,7 +1,10 @@
 import pandas as pd
+import requests
 from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
+import os
+from dotenv import load_dotenv
 
 
 def clean_and_reinput(data_path, model_path, index_path, vectors_path):
@@ -15,10 +18,33 @@ def clean_and_reinput(data_path, model_path, index_path, vectors_path):
         # Vectorize the titles
         title_vectors = []
         for _, row in data.iterrows():
-            title_vector = model.encode(row['title'])
-            title_vectors.append(title_vector)
-            print("Title:", row['title'])
-            print("Vector:", title_vector)
+            # Get the title text
+            title = row['title']
+
+            # Prepare the request payload
+            payload = {
+                "model": "text-embedding-ada-002",
+                "input": [title]
+            }
+
+            # Set the headers with the API key
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {api_key}"
+            }
+
+            # Send the request to the OpenAI API
+            response = requests.post("https://api.openai.com/v1/embeddings", headers=headers, json=payload)
+
+            # Check if the request was successful
+            if response.status_code == 200:
+                # Extract the vector embedding from the response
+                embedding = response.json()['data'][0]['embedding']
+                print(embedding)
+                # Add the embedding to the title_vectors list
+                title_vectors.append(embedding)
+            else:
+                raise Exception(f"Request failed with status code {response.status_code}")
 
         # Convert title_vectors to a NumPy array
         title_vectors = np.array(title_vectors)
@@ -39,9 +65,11 @@ def clean_and_reinput(data_path, model_path, index_path, vectors_path):
 
 
 # Example usage
+load_dotenv()
 data_path = 'phone2.xlsx'
 model_path = 'paraphrase-multilingual-mpnet-base-v2'
 index_path = 'index.faiss'
 vectors_path = 'title_vectors.npy'
+api_key = os.getenv("OPENAI_KEY")
 
 clean_and_reinput(data_path, model_path, index_path, vectors_path)
